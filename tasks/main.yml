@@ -1,0 +1,118 @@
+---
+# see http://support.torch.sh/help/kb/graylog2-server/installing-graylog2-server-v0200-previewx-on-nix-systems
+
+# elasticsearch installation
+
+- name: install java 7
+  apt: # -y flag?
+    pkg: "{{ item }}"
+    state: present
+    force: yes
+  with_items:
+    - openjdk-7-jre-headless
+
+- name: download elasticsearch 0.90.7
+  get_url:
+    url: https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.7.deb
+    dest: /tmp/elasticsearch-0.90.7.deb
+
+- name: install elasticsearch 0.90.7
+  command: dpkg -i /tmp/elasticsearch-0.90.7.deb
+
+- copy:
+    src: elasticsearch.yml
+    dest: /etc/elasticsearch/elasticsearch.yml
+
+- service: name=elasticsearch state=started
+
+# mongodb installation
+
+- command: apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+
+- apt_repository:
+    repo: "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
+    state: present
+
+- apt:
+    pkg: mongodb-10gen=2.4.8
+    state: present
+
+- service: name=mongodb state=started
+
+# graylog2 server
+# TODO cleanup
+
+- user:
+    name: _graylog2
+    comment: "Graylog 2"
+    state: present
+    home: /opt/graylog2
+    createhome: yes
+    system: yes
+
+- get_url:
+    url: "https://github.com/Graylog2/graylog2-server/releases/download/0.20.0-preview.8/graylog2-server-0.20.0-preview.8.tgz"
+    dest: /tmp/graylog2-server-0.20.0-preview.8.tgz
+
+- shell: "cd /tmp && tar xvfz /tmp/graylog2-server-0.20.0-preview.8.tgz"
+
+- shell: "mkdir -p /opt/graylog2 /var/run/graylog2/ /var/log/graylog2-server/"
+- stat:
+    path: "/opt/graylog2/server"
+  register: graylog2_server
+- shell: "mv -f /tmp/graylog2-server-0.20.0-preview.8 /opt/graylog2/server"
+  when: graylog2_server.stat.isdir is undefined or graylog2_server.stat.isdir == false
+
+- copy:
+    src: init.d/graylog2-server
+    dest: /etc/init.d/graylog2-server
+    mode: 0755
+
+- template:
+    src: "graylog2.conf.js"
+    dest: "/opt/graylog2/server/server.conf"
+    owner: _graylog2
+    group: _graylog2
+    mode: 0600
+
+- shell: "chown -R _graylog2:_graylog2 /opt/graylog2 /var/log/graylog2-server /var/run/graylog2/"
+
+# graylog2 web
+# TODO cleanup
+
+- get_url:
+    url: "https://github.com/Graylog2/graylog2-web-interface/releases/download/0.20.0-preview.8/graylog2-web-interface-0.20.0-preview.8.tgz"
+    dest: /tmp/graylog2-web-interface-0.20.0-preview.8.tgz
+
+- shell: "cd /tmp && tar xvfz /tmp/graylog2-web-interface-0.20.0-preview.8.tgz"
+
+- stat:
+    path: "/opt/graylog2/web"
+  register: graylog2_web
+
+- shell: "mkdir -p /var/log/graylog2-web"
+- shell: "mv -f /tmp/graylog2-web-interface-0.20.0-preview.8 /opt/graylog2/web"
+  when: graylog2_web.stat.isdir is undefined or graylog2_web.stat.isdir == false
+
+- copy:
+    src: init.d/graylog2-web
+    dest: /etc/init.d/graylog2-web
+    mode: 0755
+
+- template:
+    src: "graylog2-web-interface.conf.js"
+    dest: "/opt/graylog2/web/conf/graylog2-web-interface.conf"
+    owner: _graylog2
+    group: _graylog2
+    mode: 0600
+
+- template:
+    src: "graylog2-web-logger.xml.js"
+    dest: "/opt/graylog2/web/graylog2-web-logger.xml"
+    owner: _graylog2
+    group: _graylog2
+    mode: 0600
+
+- shell: "chown -R _graylog2:_graylog2 /opt/graylog2 /var/log/graylog2-web /var/run/graylog2/"
+
+# TODO (maybe: graylog2-radio; http://support.torch.sh/help/kb/graylog2-server/using-graylog2-radio-v020x)
