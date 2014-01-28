@@ -74,6 +74,8 @@
     owner: _graylog2
     group: _graylog2
     mode: 0600
+  notify:
+    - restart graylog-server
 
 - shell: "chown -R _graylog2:_graylog2 /opt/graylog2 /var/log/graylog2-server /var/run/graylog2/"
 
@@ -105,6 +107,8 @@
     owner: _graylog2
     group: _graylog2
     mode: 0600
+  notify:
+    - restart graylog-web
 
 - template:
     src: "graylog2-web-logger.xml.js"
@@ -112,7 +116,21 @@
     owner: _graylog2
     group: _graylog2
     mode: 0600
+  notify:
+    - restart graylog-web
 
 - shell: "chown -R _graylog2:_graylog2 /opt/graylog2 /var/log/graylog2-web /var/run/graylog2/"
+
+- name: ensure graylog-server is running
+  service:
+    name: graylog2-server
+    state: started
+    enabled: yes
+
+- name: ensure graylog-web is running
+  service:
+    name: graylog2-web
+    state: started
+    enabled: yes
 
 # TODO (maybe: graylog2-radio; http://support.torch.sh/help/kb/graylog2-server/using-graylog2-radio-v020x)

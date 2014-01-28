@@ -1,0 +1,10 @@
+---
+- name: restart graylog-server
+  service:
+    name: graylog2-server
+    state: restarted
+
+- name: restart graylog-web
+  service:
+    name: graylog2-web
+    state: restarted
