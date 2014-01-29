@@ -8,6 +8,7 @@ WIP graylog2 0.20.rc-1 installation with ansible
 - Elasticsearch ~> 0.90.10
 
 ## Resources
+- [Basic Playbook](http://github.com/mortik/ansible-graylog2)
 - [Installing Graylog2](http://support.torch.sh/help/kb/graylog2-server/installing-graylog2-server-v020x-on-nix-systems)
 
 ## TODO
