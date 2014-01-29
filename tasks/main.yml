@@ -71,15 +71,6 @@
   notify:
     - restart graylog-web
 
-- template:
-    src: "graylog2-web-logger.xml.js"
-    dest: "/opt/graylog2/web/graylog2-web-logger.xml"
-    owner: _graylog2
-    group: _graylog2
-    mode: 0600
-  notify:
-    - restart graylog-web
-
 - shell: "chown -R _graylog2:_graylog2 /opt/graylog2 /var/log/graylog2-web /var/run/graylog2/"
 
 - name: ensure graylog-server is running
